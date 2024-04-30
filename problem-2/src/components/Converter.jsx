@@ -5,19 +5,19 @@ import {
   CardFooter,
   Typography,
 } from "@material-tailwind/react";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import InputWrapper from "./InputWrapper";
-import { DropdownWrapper } from "./DropdownWrapper";
 import { Form, Formik } from "formik";
 import axios from "axios";
+import { CurrencySelection } from "./CurrencySelection";
 
 const Converter = () => {
-  const [result, setResult] = useState({
+  const initialValues = {
     sendingAmount: 1,
     sendingCurrency: {},
     receivingCurrency: {},
-  });
-
+  };
+  const [values, setValues] = useState(initialValues);
   const [currencies, setCurrencies] = useState([]);
 
   const getPrices = async () => {
@@ -28,18 +28,17 @@ const Converter = () => {
       });
   };
 
-  const onSubmit = (value) => {
-    setResult(value);
+  const onSubmit = (submittedData) => {
+    setValues(submittedData);
   };
 
   const onSwap = () => {
-    const { sendingAmount, sendingCurrency, receivingCurrency } = result;
-    setResult({
+    const { sendingAmount, sendingCurrency, receivingCurrency } = values;
+    setValues({
       sendingAmount,
       sendingCurrency: receivingCurrency,
       receivingCurrency: sendingCurrency,
     });
-    console.log(result);
   };
 
   useEffect(() => {
@@ -50,11 +49,7 @@ const Converter = () => {
     <div className="w-full pt-20">
       <Formik
         enableReinitialize
-        initialValues={{
-          sendingAmount: 1,
-          sendingCurrency: {},
-          receivingCurrency: {},
-        }}
+        initialValues={initialValues}
         onSubmit={onSubmit}
       >
         <Form>
@@ -64,28 +59,29 @@ const Converter = () => {
                 Currency converter
               </Typography>
               <Typography className="bg-primary-200 text-green-700 text-lg py-3 rounded-lg font-bold">
-                {result &&
-                result.sendingCurrency?.currency &&
-                result.receivingCurrency?.currency
-                  ? `${result.sendingAmount} ${
-                      result.sendingCurrency.currency
+                {values &&
+                values.sendingCurrency?.currency &&
+                values.receivingCurrency?.currency
+                  ? `${values.sendingAmount} ${
+                      values.sendingCurrency.currency
                     } = ${
-                      (result.sendingCurrency.price /
-                        result.receivingCurrency.price) *
-                      result.sendingAmount
-                    } ${result.receivingCurrency.currency}`
+                      (values.sendingCurrency.price /
+                        values.receivingCurrency.price) *
+                      values.sendingAmount
+                    } ${values.receivingCurrency.currency}`
                   : "Please currency and amount below"}
               </Typography>
               <InputWrapper name={"sendingAmount"} label={"Amount to send"} />
               <div className="flex gap-5">
-                <DropdownWrapper
-                  name={"sendingCurrency"}
+                <CurrencySelection
                   currencies={currencies}
-                  label={"Sending Currency"}
-                  // value={initialValuesRef.current.sendingCurrency.currency}
+                  label={"Select sending Currency"}
+                  name={"sendingCurrency"}
+                  value={values.sendingCurrency.currency}
                 />
+
                 <Button
-                  className="flex gap-3 m-auto flex-auto"
+                  className="flex gap-3 m-auto flex-auto justify-center"
                   onClick={onSwap}
                 >
                   <svg
@@ -100,11 +96,11 @@ const Converter = () => {
                   </svg>
                   Swap
                 </Button>
-                <DropdownWrapper
-                  name={"receivingCurrency"}
+                <CurrencySelection
                   currencies={currencies}
-                  label={"Receiving Currency"}
-                  // value={initialValuesRef.current.receivingCurrency.currency}
+                  label={"Select receiving Currency"}
+                  name={"receivingCurrency"}
+                  value={values.receivingCurrency.currency}
                 />
               </div>
             </CardBody>
